@@ -1,0 +1,28 @@
+[build-system]
+requires = ["flit_core>=3.2"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "masterthesis"
+version = "0.0.3"
+authors = [
+  { name="Julian Flesch", email="julian.fleschr@student.uni-tuebingen.de" },
+]
+description = "Master thesis code"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies=[
+  "rpy2",
+  "scanpy",
+  "numpy",
+  "umap-learn",
+  "matplotlib"
+]
+
+[tool.setuptools.package-data]
+"mypkg.data"=["acinar_sce.h5ad", "acinar_sce.rda"]
