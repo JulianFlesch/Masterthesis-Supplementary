@@ -53,7 +53,7 @@ def load_mef(mef_file=None):
 
 def load_simdata(simdata_file=None):
     if not simdata_file:
-        simdata_file = os.join(data_dir, "simdata.h5ad")
+        simdata_file = os.path.join(data_dir, "simdata.h5ad")
     return load_h5ad(simdata_file)
 
  
