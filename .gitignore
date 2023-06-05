@@ -1,2 +1,6 @@
+Pipfile.lock
+*/.ipynb_checkpoints
+
 masterthesis/dist/*
 masterthesis/src/masterthesis/data/*
+
