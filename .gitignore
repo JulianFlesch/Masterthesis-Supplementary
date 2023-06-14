@@ -1,5 +1,5 @@
 Pipfile.lock
-*/.ipynb_checkpoints
+experiments/*/.ipynb_checkpoints/
 
 masterthesis/dist/*
 masterthesis/src/masterthesis/data/*
