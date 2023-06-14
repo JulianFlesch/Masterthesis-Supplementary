@@ -72,7 +72,7 @@ def restructure_y_to_bin(y_orig):
     y_bin = []
     for ki in range(1,k):
         thresh = y_classes[ki]
-        y_bin += [int(x>=thresh) for x in y_orig]
+        y_bin += [int(x >= thresh) for x in y_orig]
 
     y_bin = np.array(y_bin)
 
