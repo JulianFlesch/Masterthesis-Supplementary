@@ -16,6 +16,8 @@ glmnet-py = "*"
 masterthesis = {path = "./masterthesis/dist/masterthesis-0.0.4.tar.gz"}
 scanpy = "*"
 anndata = "*"
+flit-core = "*"
+build = "*"
 
 [dev-packages]
 
