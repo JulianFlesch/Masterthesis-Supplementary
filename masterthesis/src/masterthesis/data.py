@@ -79,7 +79,7 @@ def restructure_y_to_bin(y_orig):
     return y_bin
 
 
-def restructure_X_to_bin(X_orig, k):
+def restructure_X_to_bin(X_orig, n_thresholds):
     '''
     The count matrix is extended with copies of itself, to fit the converted label
     vector FOR NOW. For big problems, it could suffice to have just one label 
@@ -90,12 +90,12 @@ def restructure_X_to_bin(X_orig, k):
     '''
 
     # X training matrix
-    X_bin = np.concatenate([X_orig.copy()] * (k-1))
+    X_bin = np.concatenate([X_orig.copy()] * (n_thresholds))
     # Add thresholds
-    num_el = X_orig.shape[0] * (k-1)
+    num_el = X_orig.shape[0] * (n_thresholds)
 
-    for ki in range(k-1):
-        temp = np.repeat(0, num_el).reshape(X_orig.shape[0], (k-1))
+    for ki in range(n_thresholds):
+        temp = np.repeat(0, num_el).reshape(X_orig.shape[0], (n_thresholds))
         temp[:,ki] = 1
         if ki > 0:
             thresholds = np.concatenate([thresholds, temp])
