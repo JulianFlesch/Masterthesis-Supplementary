@@ -5,7 +5,6 @@ from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.model_selection import StratifiedKFold, cross_validate, GridSearchCV
 import numpy as np
 from numpy.random import default_rng
-from .data import restructure_X_to_bin, restructure_y_to_bin
 
 
 class BaseModel(ClassifierMixin, BaseEstimator, ABC):
@@ -13,6 +12,7 @@ class BaseModel(ClassifierMixin, BaseEstimator, ABC):
     beta: np.array
     theta: np.array
     k: int = 0
+    labels: np.array
 
     @abstractmethod
     def fit(self, data, target, **kwargs):
@@ -52,14 +52,69 @@ class BaseModel(ClassifierMixin, BaseEstimator, ABC):
 
 class BinaryModelMixin(metaclass=ABCMeta):
 
-    def _check_and_restructure_X_y(self, data, targets):
+    def _check_X_y(self, data, targets):
         # check input data
-        X, y = check_X_y(data, targets, accept_sparse=True)
-        
+        return check_X_y(data, targets, accept_sparse=True)
+
+    @staticmethod
+    def restructure_y_to_bin(y_orig):
+        '''
+        The labels are converted to binary, such that the threshold from 0-1
+        corresponds from changing from label $l_i$ to $l_{i+1}$. 
+        $k$ copies of the label vector are concatenated such that for every
+        vector $j$ the labels  $l_i$ with $i<j$ are converted to 0 and the 
+        labels $i\ge j$ are converted to 1.
+        '''
+
+        y_classes = np.unique(y_orig)
+        k = len(y_classes)
+
+        y_bin = []
+        for ki in range(1,k):
+            thresh = y_classes[ki]
+            y_bin += [int(x >= thresh) for x in y_orig]
+
+        y_bin = np.array(y_bin)
+
+        return y_bin
+
+    @staticmethod
+    def restructure_X_to_bin(X_orig, n_thresholds):
+        '''
+        The count matrix is extended with copies of itself, to fit the converted label
+        vector FOR NOW. For big problems, it could suffice to have just one label 
+        vector and perform and iterative training.
+        To train the thresholds, $k$ columns are added to the count matrix and 
+        initialized to zero. Each column column represents the threshold for a 
+        label $l_i$ and is set to 1, exactly  where that label $l_1$ occurs.
+        '''
+
+        # X training matrix
+        X_bin = np.concatenate([X_orig.copy()] * (n_thresholds))
+        # Add thresholds
+        num_el = X_orig.shape[0] * (n_thresholds)
+
+        for ki in range(n_thresholds):
+            temp = np.repeat(0, num_el).reshape(X_orig.shape[0], (n_thresholds))
+            temp[:,ki] = 1
+            if ki > 0:
+                thresholds = np.concatenate([thresholds, temp])
+            else:
+                thresholds = temp
+
+        X_bin = np.concatenate([X_bin, thresholds], axis=1)
+
+        return X_bin
+
+    def _before_fit(self, data, targets):
+        data, targets = check_X_y(data, targets)
+        self.labels = np.unique(targets)
+        return data, targets
+
+    def _restructure_X_y(self, data, targets):
         # convert to binary problem
-        self.k = np.unique(y).size - 1
-        X_bin = restructure_X_to_bin(X, n_thresholds=self.k)
-        y_bin = restructure_y_to_bin(y)
+        X_bin = self.restructure_X_to_bin(data, n_thresholds=self.k)
+        y_bin = self.restructure_y_to_bin(targets)
 
         return X_bin, y_bin
     
@@ -72,13 +127,19 @@ class BinaryModelMixin(metaclass=ABCMeta):
         self.is_fitted_ = True
 
     @abstractmethod
-    def _fit_binary_model(self, X_bin, y_bin):
+    def _get_fitted_model(self, data_bin, targets_bin):
         return LogisticRegression()
 
-    def fit(self, data, target, **kwargs):
+    def fit(self, data, targets, restructured_inputs=False):
+        self.k = np.unique(targets).size - 1
 
-        X, y = self._check_and_restructure_X_y(data, target)
-        model = self._fit_binary_model(X, y)
+        data, targets = self._before_fit(data, targets)
+        
+        # restructure the input data as a binary problem
+        if not restructured_inputs:
+            data, targets = self._restructure_X_y(data, targets)
+
+        model = self._get_fitted_model(data, targets)
         self._after_fit(model)
 
         return self
@@ -99,14 +160,14 @@ class LinearBinarizedModel(BinaryModelMixin, BaseModel):
         self.theta = []
         self.beta = []
 
-    def _fit_binary_model(self, X_bin, y_bin):
+    def _get_fitted_model(self, X_bin, y_bin):
 
         model = LogisticRegression(penalty="l1", 
                                   fit_intercept=False,
                                   max_iter=self.max_iter,
                                   solver=self.solver,
                                   random_state=self.random_state,
-                                  C=1 / self.regularization  # Inverse of regularization strength -> controls sparsity in our case!
+                                  C=self.regularization  # Inverse of regularization strength -> controls sparsity in our case!
                                 )
 
         model.fit(X_bin, y_bin)
@@ -121,15 +182,22 @@ class SGDBinarizedModel(BinaryModelMixin, BaseModel):
         self.max_iter = max_iter
         self.n_batches = n_batches
         self.random_state = random_state
-        self.rng = default_rng(seed=self.random_state)
         self.regularization = regularization
+        self.rng = default_rng(seed=self.random_state)
 
         # fitting/data parameters
         self.k = None
         self.theta = []
         self.beta = []
 
-    def _fit_binary_model(self, X_bin, y_bin):
+    def _restructure_X_y(self, data, targets):
+        # overwrites the superclass method to 
+        # only convert the target vector to binary problem
+        y_bin = self.restructure_y_to_bin(targets)
+
+        return data, y_bin
+    
+    def _get_fitted_model(self, X, y_bin):
 
         model = SGDClassifier(loss="log_loss",
                               random_state=self.random_state,
@@ -137,6 +205,10 @@ class SGDBinarizedModel(BinaryModelMixin, BaseModel):
                               alpha=self.regularization,
                               fit_intercept=False,
                               n_jobs=1)
+
+        # thresholds matrix 
+        thresholds = np.identity(self.k)
+        n = X.shape[0]
 
         cur_iter = 0
 
@@ -146,17 +218,13 @@ class SGDBinarizedModel(BinaryModelMixin, BaseModel):
             
             cur_iter += 1
             
-            # fit from samples of the big matrix
-            # TODO: Sampling from the big matrix directly is just for PoP,
-            # and eliminates the purpose. Only the binarized y-vector should
-            # be created and the indexes taken from the log count matrix.
-            sampled_indices = self.rng.integers(X_bin.shape[0], size=X_bin.shape[0])
+            sampled_indices = self.rng.integers(len(y_bin), size=len(y_bin))
 
             start = 0
             for i in range(1, self.n_batches+1):
-                end = (i * X_bin.shape[0] // self.n_batches)
+                end = (i * len(y_bin) // self.n_batches)
                 idx = sampled_indices[start:end]
-                X_batch = X_bin[idx,:]
+                X_batch = np.concatenate((X[idx % n,:], thresholds[idx // n]), axis=1)
                 y_batch = y_bin[idx]
                 start = end
                 model.partial_fit(X_batch, y_batch, classes=np.unique(y_batch))
