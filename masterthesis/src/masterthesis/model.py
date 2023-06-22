@@ -109,6 +109,7 @@ class BinaryModelMixin(metaclass=ABCMeta):
     def _before_fit(self, data, targets):
         data, targets = check_X_y(data, targets)
         self.labels = np.unique(targets)
+        self.k = len(self.labels) - 1
         return data, targets
 
     def _restructure_X_y(self, data, targets):
@@ -127,22 +128,8 @@ class BinaryModelMixin(metaclass=ABCMeta):
         self.is_fitted_ = True
 
     @abstractmethod
-    def _get_fitted_model(self, data_bin, targets_bin):
-        return LogisticRegression()
-
-    def fit(self, data, targets, restructured_inputs=False):
-        self.k = np.unique(targets).size - 1
-
-        data, targets = self._before_fit(data, targets)
-        
-        # restructure the input data as a binary problem
-        if not restructured_inputs:
-            data, targets = self._restructure_X_y(data, targets)
-
-        model = self._get_fitted_model(data, targets)
-        self._after_fit(model)
-
-        return self
+    def fit(self, data, targets, sample_weight=None):
+        pass
 
 
 class LinearBinarizedModel(BinaryModelMixin, BaseModel):
@@ -160,7 +147,9 @@ class LinearBinarizedModel(BinaryModelMixin, BaseModel):
         self.theta = []
         self.beta = []
 
-    def _get_fitted_model(self, X_bin, y_bin):
+    def fit(self, data, targets, sample_weight=None):
+        data, targets = self._before_fit(data, targets)
+        data, targets = self._restructure_X_y(data, targets)
 
         model = LogisticRegression(penalty="l1", 
                                   fit_intercept=False,
@@ -169,10 +158,12 @@ class LinearBinarizedModel(BinaryModelMixin, BaseModel):
                                   random_state=self.random_state,
                                   C=self.regularization  # Inverse of regularization strength -> controls sparsity in our case!
                                 )
+        
+        weights = np.tile(sample_weight, self.k) if sample_weight is not None else None
+        model.fit(data, targets, sample_weight=weights)
+        self._after_fit(model)
 
-        model.fit(X_bin, y_bin)
-
-        return model
+        return self
 
 
 class SGDBinarizedModel(BinaryModelMixin, BaseModel):
@@ -197,7 +188,9 @@ class SGDBinarizedModel(BinaryModelMixin, BaseModel):
 
         return data, y_bin
     
-    def _get_fitted_model(self, X, y_bin):
+    def fit(self, X, y, sample_weight=None):
+        X, y = self._before_fit(X, y)
+        y_bin = self.restructure_y_to_bin(y)
 
         model = SGDClassifier(loss="log_loss",
                               random_state=self.random_state,
@@ -213,8 +206,8 @@ class SGDBinarizedModel(BinaryModelMixin, BaseModel):
         cur_iter = 0
 
         while cur_iter < self.max_iter:
-            if (cur_iter > 0 and cur_iter % 2 == 0):
-                print("Iter: ", cur_iter, "Train score: ", model.score(X_batch, y_batch))
+            #if (cur_iter > 0 and cur_iter % 2 == 0):
+            #    print("Iter: ", cur_iter, "Train score: ", model.score(X_batch, y_batch))
             
             cur_iter += 1
             
@@ -227,6 +220,8 @@ class SGDBinarizedModel(BinaryModelMixin, BaseModel):
                 X_batch = np.concatenate((X[idx % n,:], thresholds[idx // n]), axis=1)
                 y_batch = y_bin[idx]
                 start = end
-                model.partial_fit(X_batch, y_batch, classes=np.unique(y_batch))
+                weights = np.array(sample_weight)[idx] if sample_weight is not None else None
+                model.partial_fit(X_batch, y_batch, classes=np.unique(y_batch), sample_weight=weights)
 
-        return model
+        self._after_fit(model)
+        return self
