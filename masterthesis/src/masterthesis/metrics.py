@@ -1,8 +1,7 @@
 from sklearn.metrics import log_loss, accuracy_score
 import numpy as np
 
-
-def abs_delta(y_pred, y, mean=False):
+def abs_delta(y_pred, y, mean=True):
     if len(y_pred) != len(y):
         print("[Warning] inputs of different length:", len(y_pred), len(y))
         return -1
