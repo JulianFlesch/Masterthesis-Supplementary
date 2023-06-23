@@ -8,6 +8,7 @@ from numpy.random import default_rng
 
 
 class BaseModel(ClassifierMixin, BaseEstimator, ABC):
+    regularization: float
     random_state: int = 1234
     beta: np.array
     theta: np.array
@@ -156,7 +157,7 @@ class LinearBinarizedModel(BinaryModelMixin, BaseModel):
                                   max_iter=self.max_iter,
                                   solver=self.solver,
                                   random_state=self.random_state,
-                                  C=self.regularization  # Inverse of regularization strength -> controls sparsity in our case!
+                                  C=1/self.regularization  # Inverse of regularization strength -> controls sparsity in our case!
                                 )
         
         weights = np.tile(sample_weight, self.k) if sample_weight is not None else None
@@ -167,7 +168,8 @@ class LinearBinarizedModel(BinaryModelMixin, BaseModel):
 
 
 class SGDBinarizedModel(BinaryModelMixin, BaseModel):
-    def __init__(self, max_iter=5, n_batches=2, random_state=1234, regularization=0.01):
+
+    def __init__(self, max_iter=10, n_batches=1, random_state=1234, regularization=0.01):
         
         # model hyperparameters
         self.max_iter = max_iter
@@ -217,10 +219,11 @@ class SGDBinarizedModel(BinaryModelMixin, BaseModel):
             for i in range(1, self.n_batches+1):
                 end = (i * len(y_bin) // self.n_batches)
                 idx = sampled_indices[start:end]
-                X_batch = np.concatenate((X[idx % n,:], thresholds[idx // n]), axis=1)
+                idx_mod_n = idx % n
+                X_batch = np.concatenate((X[idx_mod_n,:], thresholds[idx // n]), axis=1)
                 y_batch = y_bin[idx]
                 start = end
-                weights = np.array(sample_weight)[idx] if sample_weight is not None else None
+                weights = np.array(sample_weight)[idx_mod_n] if sample_weight is not None else None
                 model.partial_fit(X_batch, y_batch, classes=np.unique(y_batch), sample_weight=weights)
 
         self._after_fit(model)
