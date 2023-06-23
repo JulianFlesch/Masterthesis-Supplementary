@@ -10,10 +10,11 @@ from numpy.random import default_rng
 class BaseModel(ClassifierMixin, BaseEstimator, ABC):
     regularization: float
     random_state: int = 1234
-    beta: np.array
-    theta: np.array
+    coef_: np.array
+    intercept_: np.array
     k: int = 0
-    labels: np.array
+    classes_: np.array
+    is_fitted_: bool = False
 
     @abstractmethod
     def fit(self, data, target, **kwargs):
@@ -35,10 +36,10 @@ class BaseModel(ClassifierMixin, BaseEstimator, ABC):
         pred = np.zeros(X.shape[0] * (self.k + 1)).reshape(X.shape[0], self.k + 1)
 
         # save matrix multiplication
-        transform = X @ self.beta
+        transform = X @ self.coef_
 
         for i in range(self.k):
-            pred[:, i] = 1 / (1 + np.exp(transform - self.theta[i]))
+            pred[:, i] = 1 / (1 + np.exp(transform - self.intercept_[i]))
         
         pred[:, self.k] = 1 - np.sum(pred[:, :-1], axis=1)
 
@@ -109,8 +110,8 @@ class BinaryModelMixin(metaclass=ABCMeta):
 
     def _before_fit(self, data, targets):
         data, targets = check_X_y(data, targets)
-        self.labels = np.unique(targets)
-        self.k = len(self.labels) - 1
+        self.classes_ = np.unique(targets)
+        self.k = len(self.classes_) - 1
         return data, targets
 
     def _restructure_X_y(self, data, targets):
@@ -123,8 +124,8 @@ class BinaryModelMixin(metaclass=ABCMeta):
     def _after_fit(self, model):
         # extract the thresholds and weights
         # from the 2D coefficients matrix in the sklearn model
-        self.theta = model.coef_[0, -self.k:][::-1]  # thresholds
-        self.beta = model.coef_[0, :-self.k]   # weights
+        self.intercept_ = model.coef_[0, -self.k:][::-1]  # thresholds
+        self.coef_ = model.coef_[0, :-self.k]   # weights
 
         self.is_fitted_ = True
 
@@ -145,8 +146,8 @@ class LinearBinarizedModel(BinaryModelMixin, BaseModel):
 
         # fitting/data parameters
         self.k = None
-        self.theta = []
-        self.beta = []
+        self.intercept_ = []
+        self.coef_ = []
 
     def fit(self, data, targets, sample_weight=None):
         data, targets = self._before_fit(data, targets)
@@ -180,8 +181,8 @@ class SGDBinarizedModel(BinaryModelMixin, BaseModel):
 
         # fitting/data parameters
         self.k = None
-        self.theta = []
-        self.beta = []
+        self.intercept_ = []
+        self.coef_ = []
 
     def _restructure_X_y(self, data, targets):
         # overwrites the superclass method to 
