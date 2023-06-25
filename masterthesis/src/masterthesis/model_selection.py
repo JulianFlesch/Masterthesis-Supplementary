@@ -20,6 +20,7 @@ class RegularizationGridSearch:
         else:
             self.lambdas = lambdas
 
+        
         # average cross validation scores for each lambda
         self.scores = []
 
