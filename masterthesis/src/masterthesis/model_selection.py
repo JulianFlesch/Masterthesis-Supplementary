@@ -23,11 +23,20 @@ class RegularizationGridSearch:
         # average cross validation scores for each lambda
         self.scores = []
 
-        # degree of freedom of best models trained during cross validation
+        # std of cross validation scores for each lambda
+        self.scores_std = []
+
+        # average training scores fore each lambda
+        self.train_scores = []
+
+        # std of training scores fore each lambda
+        self.train_scores_std = []
+
+        # best degrees of freedom 
         self.dof = []
 
-        # collect the best estimators for each tested regularization
-        self.estimators = []
+        # best estimators
+        self.fitted_estimators = []
 
     @staticmethod
     def calc_dof(params):
@@ -36,21 +45,22 @@ class RegularizationGridSearch:
         """
         return np.count_nonzero(params != 0)
 
-    def fit(self, X, y, sample_weight=None):
+    def fit(self, X, y, fit_params=dict(), estimator_params=dict()):
 
         for i, lamb in enumerate(self.lambdas):
             
             print("Regularization: %s/%s" % (i+1, len(self.lambdas)), sep="", end="\r")
 
-            cv = cross_validate(estimator=self.estimator(regularization=lamb),
+            cv = cross_validate(estimator=self.estimator(regularization=lamb, **estimator_params),
                                 scoring=self.scoring,
                                 n_jobs=self.n_jobs,
                                 cv=self.n_folds,
                                 X=X,
                                 y=y,
                                 error_score="raise",
+                                return_train_score=True,
                                 return_estimator=True,
-                                fit_params={"sample_weight": sample_weight}
+                                fit_params=fit_params
                                 )
 
             # TODO: Allow arbitrary scoring. Currently uses only accuracy score.
@@ -63,9 +73,12 @@ class RegularizationGridSearch:
             #    self.scores.append(cv["test_score"].mean())
             
             best_idx = np.argmax(cv["test_score"])
-            self.scores.append(cv["test_score"].mean())
-            self.estimators.append(cv["estimator"][best_idx])
-            self.dof.append(self.calc_dof(cv["estimator"][best_idx].beta))
+            self.train_scores.append(np.std(cv["train_score"]))
+            self.train_scores_std.append(np.std(cv["train_score"]))
+            self.scores.append(np.mean(cv["test_score"]))
+            self.scores_std.append(np.std(cv["test_score"]))
+            self.fitted_estimators.append(cv["estimator"][best_idx])
+            self.dof.append(self.calc_dof(cv["estimator"][best_idx].coef_))
 
         return self
 
@@ -76,7 +89,7 @@ class RegularizationGridSearch:
 
         if method == "best":
             idx = np.argmax(self.scores)
-            return self.lambdas[idx]
+            return (self.lambdas[idx], idx)
             
         if method == "1se":
             n = len(self.dof)
@@ -95,15 +108,29 @@ class RegularizationGridSearch:
             #else:
             #    idx = above.iloc[0].name
 
-            max_idx = np.argmax(self.scores)
-            thresh = self.scores[max_idx] - np.std(self.scores)
+            # compute the threshold as the maximum score minus the standard error
+            nonzero_idx = np.nonzero(self.dof)
+            thresh = np.max(self.scores) - np.std(np.array(self.scores)[nonzero_idx])
 
             if sparsity_increases_w_idx:
-                scores = reversed(self.scores)
+                items = zip(self.scores, self.dof)
             else:
-                scores = self.scores
+                items = reversed(list(zip(self.scores, self.dof)))
 
-            for i, s in enumerate(self.scores):
-                if s > thresh:
+            for i, (s, d) in enumerate(items):
+                # exclude models with 0 degrees of freedom
+                if s > thresh and d != 0:
                     return (self.lambdas[i], i)
+            
+            print("Warning: No model for method '1se' with non-zero degrees of freedom could be found. Returning the best scoring model")
+            return self.get_optimal_lambda(method="best")
         
+    def get_optimal_parameters(self, *args, **kwargs):
+        lamb, idx = self.get_optimal_lambda(*args, **kwargs)
+        return self.fitted_estimators[idx].get_params()
+
+    def get_optimal_model(self, *args, **kwargs):
+        return self.estimator(**self.get_optimal_parameters(*args, **kwargs))
+
+    def get_estimator_weights_by_lambdas(self):
+        pass
