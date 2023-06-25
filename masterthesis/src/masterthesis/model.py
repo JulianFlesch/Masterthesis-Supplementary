@@ -151,7 +151,7 @@ class LinearBinarizedModel(BinaryModelMixin, BaseModel):
         self.coef_ = []
 
     def _get_estimator(self):
-        if self.binary_estimator_ is not None:
+        if self.binary_estimator_ is None:
             self.binary_estimator_ =  LogisticRegression(penalty="l1", 
                                                     fit_intercept=False,
                                                     max_iter=self.max_iter,
@@ -190,7 +190,7 @@ class LassoBinarizedModel(LinearBinarizedModel):
         self.coef_ = []
 
     def _get_estimator(self):
-        if self.binary_estimator_ is not None:
+        if self.binary_estimator_ is None:
             self.binary_estimator_ =  \
                 Lasso(fit_intercept=False,
                     tol=self.tol,
@@ -225,16 +225,23 @@ class SGDBinarizedModel(BinaryModelMixin, BaseModel):
 
         return data, y_bin
     
-    def fit(self, X, y, sample_weight=None):
-        X, y = self._before_fit(X, y)
-        y_bin = self.restructure_y_to_bin(y)
-
-        model = SGDClassifier(loss="log_loss",
+    def _get_estimator(self):
+        if self.binary_estimator_ is None:
+            self.binary_estimator_ =  \
+                 SGDClassifier(loss="log_loss",
                               random_state=self.random_state,
                               penalty="l1",
                               alpha=self.regularization,
                               fit_intercept=False,
                               n_jobs=1)
+
+        return self.binary_estimator_
+        
+    def fit(self, X, y, sample_weight=None):
+        X, y = self._before_fit(X, y)
+        y_bin = self.restructure_y_to_bin(y)
+
+        model = self._get_estimator()
 
         # thresholds matrix 
         thresholds = np.identity(self.k)
