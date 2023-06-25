@@ -1,7 +1,7 @@
 from abc import ABC, ABCMeta, abstractmethod
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
-from sklearn.linear_model import LogisticRegression, SGDClassifier
+from sklearn.linear_model import LogisticRegression, SGDClassifier, Lasso
 from sklearn.model_selection import StratifiedKFold, cross_validate, GridSearchCV
 import numpy as np
 from numpy.random import default_rng
@@ -21,10 +21,6 @@ class BaseModel(ClassifierMixin, BaseEstimator, ABC):
         print("No fitting implemented")
         self.is_fitted_ = True
         return self
-
-    def cv_fit(self, X, y, n_folds=5):
-        #kf = StratifiedKFold(n_splits=n_folds)
-        pass
     
     def predict_proba(self, X):
 
@@ -53,6 +49,7 @@ class BaseModel(ClassifierMixin, BaseEstimator, ABC):
 
 
 class BinaryModelMixin(metaclass=ABCMeta):
+    binary_estimator_: BaseEstimator = None
 
     def _check_X_y(self, data, targets):
         # check input data
@@ -129,6 +126,9 @@ class BinaryModelMixin(metaclass=ABCMeta):
 
         self.is_fitted_ = True
 
+    def _get_estimator(self):
+        return self.binary_estimator_
+
     @abstractmethod
     def fit(self, data, targets, sample_weight=None):
         pass
@@ -143,29 +143,63 @@ class LinearBinarizedModel(BinaryModelMixin, BaseModel):
         self.solver = solver
         self.random_state = random_state
         self.regularization = regularization
+        self.binary_estimator_ = None
 
         # fitting/data parameters
         self.k = None
         self.intercept_ = []
         self.coef_ = []
 
+    def _get_estimator(self):
+        if self.binary_estimator_ is not None:
+            self.binary_estimator_ =  LogisticRegression(penalty="l1", 
+                                                    fit_intercept=False,
+                                                    max_iter=self.max_iter,
+                                                    solver=self.solver,
+                                                    random_state=self.random_state,
+                                                    C=1/self.regularization  # Inverse of regularization strength -> controls sparsity in our case!
+                                                    )
+        
+        return self.binary_estimator_
+
     def fit(self, data, targets, sample_weight=None):
         data, targets = self._before_fit(data, targets)
         data, targets = self._restructure_X_y(data, targets)
 
-        model = LogisticRegression(penalty="l1", 
-                                  fit_intercept=False,
-                                  max_iter=self.max_iter,
-                                  solver=self.solver,
-                                  random_state=self.random_state,
-                                  C=1/self.regularization  # Inverse of regularization strength -> controls sparsity in our case!
-                                )
+        model = self._get_estimator()
         
         weights = np.tile(sample_weight, self.k) if sample_weight is not None else None
         model.fit(data, targets, sample_weight=weights)
         self._after_fit(model)
 
         return self
+
+class LassoBinarizedModel(LinearBinarizedModel):
+    def __init__(self, max_iter=10000, tol=1e-4, random_state=1234, regularization=0.01):
+        
+        # model hyperparameters
+        self.tol = tol
+        self.max_iter = max_iter
+        self.random_state = random_state
+        self.regularization = regularization
+        self.binary_estimator_ = None
+
+        # fitting/data parameters
+        self.k = None
+        self.intercept_ = []
+        self.coef_ = []
+
+    def _get_estimator(self):
+        if self.binary_estimator_ is not None:
+            self.binary_estimator_ =  \
+                Lasso(fit_intercept=False,
+                    tol=self.tol,
+                    max_iter=self.max_iter,
+                    random_state=self.random_state,
+                    alpha=self.regularization
+                    )
+
+        return self.binary_estimator_
 
 
 class SGDBinarizedModel(BinaryModelMixin, BaseModel):
