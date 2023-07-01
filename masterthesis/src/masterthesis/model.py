@@ -3,9 +3,14 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 from sklearn.linear_model import LogisticRegression, SGDClassifier, Lasso
 from sklearn.model_selection import StratifiedKFold, cross_validate, GridSearchCV
+from sklearn import metrics
 import numpy as np
 from numpy.random import default_rng
+import warnings
 
+
+# Maximum positive number before numpy 64bit float overflows in np.exp()
+MAX_EXP = 709
 
 class BaseModel(ClassifierMixin, BaseEstimator, ABC):
     regularization: float
@@ -22,7 +27,9 @@ class BaseModel(ClassifierMixin, BaseEstimator, ABC):
         self.is_fitted_ = True
         return self
     
-    def predict_proba(self, X):
+    def _predict_proba_old(self, X):
+
+        # Requires reversed tresholds vector!
 
         # TODO: Implement differnet methods "forward", "Backward", "prop-odds"
         X = check_array(X, accept_sparse=True)
@@ -44,8 +51,40 @@ class BaseModel(ClassifierMixin, BaseEstimator, ABC):
 
         return pred
 
+    def predict_proba(self, X):
+        warnings.filterwarnings("once")
+
+        transform = X @ self.coef_        
+        logit = np.zeros(X.shape[0] * (self.k)).reshape(X.shape[0], self.k)
+        
+        # calculate logit
+        for i in range(self.k):
+            # Clip exponents that are larger than MAX_EXP for numerical stability
+            # this will cause warnings and nans otherwise!
+            temp = self.intercept_[i] + transform
+            temp = np.clip(temp, np.min(temp), MAX_EXP)
+            exp = np.exp(temp)
+            logit[:, i] = exp / (1 + exp)
+
+        prob = np.zeros(X.shape[0] * (self.k + 1)).reshape(X.shape[0], self.k + 1)
+        # calculate differences
+        for i in range(self.k + 1):
+            if i == 0:
+                prob[:, i] = 1 - logit[:, i]
+            elif i < self.k:
+                prob[:, i] = logit[:, i-1] - logit[:, i]
+            elif i == self.k:
+                prob[:, i] = logit[:, i-1]
+        
+        warnings.filterwarnings("always")
+        return prob
+    
     def predict(self, X):
         return np.apply_along_axis(np.argmax, 1, self.predict_proba(X))
+
+    def score(self, X, y, sample_weight=None):
+        pred = self.predict(X)
+        return metrics.mean_absolute_error(pred, y, sample_weight=sample_weight)
 
 
 class BinaryModelMixin(metaclass=ABCMeta):
@@ -121,7 +160,7 @@ class BinaryModelMixin(metaclass=ABCMeta):
     def _after_fit(self, model):
         # extract the thresholds and weights
         # from the 2D coefficients matrix in the sklearn model
-        self.intercept_ = model.coef_[0, -self.k:][::-1]  # thresholds
+        self.intercept_ = model.coef_[0, -self.k:]  # thresholds
         self.coef_ = model.coef_[0, :-self.k]   # weights
 
         self.is_fitted_ = True
