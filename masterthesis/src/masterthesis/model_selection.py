@@ -7,6 +7,8 @@ class RegularizationGridSearch:
 
     def __init__(self, estimator=BaseModel, scoring=None, lambdas=None, n_lambdas=50, lambda_high=10, lambda_low=0.0001, n_jobs=-1, n_folds=5):
         
+        self.is_fitted = False
+
         if isinstance(scoring, dict) or isinstance(scoring, Iterable):
             print("Warning: multiple scorers were set as `scoring` parameter which is currently not supported.")
         self.scoring = scoring  # for now, only use default scoring
@@ -19,7 +21,6 @@ class RegularizationGridSearch:
             self.lambdas = np.geomspace(lambda_high, lambda_low, n_lambdas)
         else:
             self.lambdas = lambdas
-
         
         # average cross validation scores for each lambda
         self.scores = []
@@ -74,13 +75,14 @@ class RegularizationGridSearch:
             #    self.scores.append(cv["test_score"].mean())
             
             best_idx = np.argmax(cv["test_score"])
-            self.train_scores.append(np.std(cv["train_score"]))
+            self.train_scores.append(np.mean(cv["train_score"]))
             self.train_scores_std.append(np.std(cv["train_score"]))
             self.scores.append(np.mean(cv["test_score"]))
             self.scores_std.append(np.std(cv["test_score"]))
             self.fitted_estimators.append(cv["estimator"][best_idx])
             self.dof.append(self.calc_dof(cv["estimator"][best_idx].coef_))
 
+        self.is_fitted_ = True
         return self
 
     def get_optimal_lambda(self, method="1se"):
