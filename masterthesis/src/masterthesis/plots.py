@@ -4,10 +4,12 @@ from .preprocessing import transform_labels, calculate_weights
 import numpy as np
 from sklearn import metrics
 import seaborn as sns
+import anndata as ad
+import pandas as pd
 from matplotlib import pyplot as plt
 
 
-def plot_grid_search(grid_search: RegularizationGridSearch, title="Grid Search Results"):
+def plot_grid_search(grid_search: RegularizationGridSearch, title="Grid Search Results", figsize=(16,4)):
 
     if not isinstance(grid_search, RegularizationGridSearch):
         raise ValueError("The first argument needs to be a completed GridSearch")
@@ -20,7 +22,7 @@ def plot_grid_search(grid_search: RegularizationGridSearch, title="Grid Search R
     ose_lambda, ose_idx = grid_search.get_optimal_lambda("1se")
     print("1SE idx:", ose_idx, "1SE Score:", grid_search.scores[ose_idx], "1SE Lambda:", grid_search.lambdas[ose_idx])
 
-    fig = plt.figure(figsize=(16,4))
+    fig = plt.figure(figsize=figsize)
 
     ax1 = fig.add_subplot(131)
     fitted_weights = np.array([e.coef_ for e in grid_search.fitted_estimators])
@@ -53,7 +55,7 @@ def plot_grid_search(grid_search: RegularizationGridSearch, title="Grid Search R
     return fig
 
 
-def plot_model_perf(model, train, test, title="Model Predictions"):
+def plot_model_perf(model, train, test, title="Model Predictions", figsize=(10, 4)):
 
     if not isinstance(model, BaseModel):
         raise ValueError("The first argument needs to be a fitted sklearn model")
@@ -83,7 +85,7 @@ def plot_model_perf(model, train, test, title="Model Predictions"):
     print("Balanced accuracy:", metrics.balanced_accuracy_score(y_test_trans, model.predict(X_test)))
     print("Mean absolute delta:", metrics.mean_absolute_error(y_test_trans, model.predict(X_test), sample_weight=weights_test))
 
-    fig = plt.figure(figsize=(10,4))
+    fig = plt.figure(figsize=figsize)
     ax1 = fig.add_subplot(121)
     ax2 = fig.add_subplot(122)
 
@@ -99,9 +101,23 @@ def plot_model_perf(model, train, test, title="Model Predictions"):
     return fig
 
 
-def plot_identified_gene_coefficients(*args, **kwargs):
-    #TODO
-    pass
+def plot_identified_gene_coefficients(model, anndata: ad.AnnData,  n_top=30, figsize=(6,6), *args, **kwargs):
+
+    var_copy = pd.DataFrame({"psupertime_weights": model.coef_},
+                            index=anndata.var.index.copy())
+
+    sorted_idx = np.argsort(np.abs(model.coef_))
+    max_val = np.abs(var_copy["psupertime_weights"][sorted_idx][-1])
+
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(111)
+    var_copy["psupertime_weights"][sorted_idx[-n_top:]].plot.barh(ax=ax, width=0.25, color="black")
+    ax.bar_label(ax.containers[0])
+    ax.set_xlim((-(max_val * 1.5), max_val * 1.5))
+    ax.axvline(0, color="black", ls="--")
+
+    return ax
+
 
 
 def plot_identified_genes_over_psupertime(n = 20, *args, **kwargs):
@@ -109,6 +125,21 @@ def plot_identified_genes_over_psupertime(n = 20, *args, **kwargs):
     pass
 
 
-def plot_labels_over_psupertime(*args, **kwargs):
-    # TODO
-    pass
+def plot_labels_over_psupertime(model, anndata: ad.AnnData, label_key, figsize=(10, 5), *args, **kwargs):
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(111)
+
+    palette='RdBu'
+    col_vals = sns.color_palette(palette, len(anndata.obs.ordinal_label.unique()))
+    sns.kdeplot(data=anndata.obs, x='psupertime', fill=label_key, hue=label_key, alpha=0.5,
+                    palette=col_vals, legend=True, ax=ax)
+
+    for x, c in zip(model.intercept_ * -1, col_vals):
+        ax.axvline(x=x, color=c)
+
+    ax.set_xlabel('psupertime')
+    ax.set_ylabel('Density')
+
+    sns.despine()
+
+    return fig
