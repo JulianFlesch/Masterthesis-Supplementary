@@ -73,7 +73,7 @@ class Preprocessing(BaseEstimator, TransformerMixin):
         sc.pp.filter_genes(adata, min_counts=cell_thresh)
 
         # log transform: adata.X = log(adata.X + 1)
-        if self.log: sc.pp.log1p(adata)
+        if self.log: sc.pp.log1p(adata, copy=False)
 
         # select highly-variable genes
         if self.select_genes == "hvg":
