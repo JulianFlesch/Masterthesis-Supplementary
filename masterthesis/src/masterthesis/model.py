@@ -184,7 +184,7 @@ class BinaryModelMixin(metaclass=ABCMeta):
     def _after_fit(self, model):
         # extract the thresholds and weights
         # from the 2D coefficients matrix in the sklearn model
-        self.intercept_ = model.coef_[0, -self.k:]  # thresholds
+        self.intercept_ = np.array(model.coef_[0, -self.k:]) + model.intercept_  # thresholds
         self.coef_ = model.coef_[0, :-self.k]   # weights
 
         self.is_fitted_ = True
@@ -216,7 +216,7 @@ class LinearBinarizedModel(BinaryModelMixin, BaseModel):
     def _get_estimator(self):
         if self.binary_estimator_ is None:
             self.binary_estimator_ =  LogisticRegression(penalty="l1", 
-                                                    fit_intercept=False,
+                                                    fit_intercept=True,
                                                     max_iter=self.max_iter,
                                                     solver=self.solver,
                                                     random_state=self.random_state,
@@ -295,7 +295,7 @@ class SGDBinarizedModel(BinaryModelMixin, BaseModel):
                               random_state=self.random_state,
                               penalty="l1",
                               alpha=self.regularization,
-                              fit_intercept=False,
+                              fit_intercept=True,
                               n_jobs=1)
 
         return self.binary_estimator_
