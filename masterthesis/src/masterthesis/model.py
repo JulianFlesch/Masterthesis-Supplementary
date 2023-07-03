@@ -85,6 +85,10 @@ class BaseModel(ClassifierMixin, BaseEstimator, ABC):
     def predict(self, X):
         return np.apply_along_axis(np.argmax, 1, self.predict_proba(X))
 
+    def score(self, X, y, sample_weight=None):
+        pred = self.predict(X)
+        return metrics.mean_absolute_error(pred, y, sample_weight=sample_weight)
+
     def predict_psuper(self, anndata: ad.AnnData, inplace=True):
         
         transform = anndata.X @ self.coef_
@@ -98,10 +102,13 @@ class BaseModel(ClassifierMixin, BaseEstimator, ABC):
             return pd.DataFrame({"psupertime": transform,
                                  "predicted_label": predicted_labels},
                                  index=anndata.obs.index.copy())
-
-    def score(self, X, y, sample_weight=None):
-        pred = self.predict(X)
-        return metrics.mean_absolute_error(pred, y, sample_weight=sample_weight)
+    
+    def gene_weights(self, anndata: ad.AnnData, inplace=True):
+        if inplace:
+            anndata.var["psupertime_weight"] = self.coef_
+        else:
+            return pd.DataFrame({"psupertime_weight": self.coef_},
+                                index=anndata.var.index.copy())
 
 
 class BinaryModelMixin(metaclass=ABCMeta):
