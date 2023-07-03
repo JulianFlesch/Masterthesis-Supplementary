@@ -4,13 +4,16 @@ from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 from sklearn.linear_model import LogisticRegression, SGDClassifier, Lasso
 from sklearn.model_selection import StratifiedKFold, cross_validate, GridSearchCV
 from sklearn import metrics
+import anndata as ad
 import numpy as np
+import pandas as pd
 from numpy.random import default_rng
 import warnings
 
 
 # Maximum positive number before numpy 64bit float overflows in np.exp()
 MAX_EXP = 709
+
 
 class BaseModel(ClassifierMixin, BaseEstimator, ABC):
     regularization: float
@@ -59,7 +62,7 @@ class BaseModel(ClassifierMixin, BaseEstimator, ABC):
         
         # calculate logit
         for i in range(self.k):
-            # Clip exponents that are larger than MAX_EXP for numerical stability
+            # Clip exponents that are larger than MAX_EXP before np.exp for numerical stability
             # this will cause warnings and nans otherwise!
             temp = self.intercept_[i] + transform
             temp = np.clip(temp, np.min(temp), MAX_EXP)
@@ -81,6 +84,20 @@ class BaseModel(ClassifierMixin, BaseEstimator, ABC):
     
     def predict(self, X):
         return np.apply_along_axis(np.argmax, 1, self.predict_proba(X))
+
+    def predict_psuper(self, anndata: ad.AnnData, inplace=True):
+        
+        transform = anndata.X @ self.coef_
+        predicted_labels = self.predict(anndata.X)      
+
+        if inplace:
+            anndata.obs["psupertime"] = transform
+            anndata.obs["predicted_label"] = predicted_labels
+        
+        else:
+            return pd.DataFrame({"psupertime": transform,
+                                 "predicted_label": predicted_labels},
+                                 index=anndata.obs.index.copy())
 
     def score(self, X, y, sample_weight=None):
         pred = self.predict(X)
@@ -277,6 +294,8 @@ class SGDBinarizedModel(BinaryModelMixin, BaseModel):
         return self.binary_estimator_
         
     def fit(self, X, y, sample_weight=None):
+        # TODO: implement early stopping. Don't run all iterations, if the score doesn't change.
+
         X, y = self._before_fit(X, y)
         y_bin = self.restructure_y_to_bin(y)
 
