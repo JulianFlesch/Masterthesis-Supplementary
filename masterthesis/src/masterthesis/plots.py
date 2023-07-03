@@ -18,7 +18,7 @@ def plot_grid_search(grid_search: RegularizationGridSearch, title="Grid Search R
     best_lambda, best_idx = grid_search.get_optimal_lambda("best")
     print("Best idx:", best_idx, "Best Score:", grid_search.scores[best_idx], "Best Lambda:", grid_search.lambdas[best_idx], "Scores std:", np.std(grid_search.scores))
     ose_lambda, ose_idx = grid_search.get_optimal_lambda("1se")
-    print("1SE idx:", best_idx, "1SE Score:", grid_search.scores[best_idx], "1SE Lambda:", grid_search.lambdas[best_idx])
+    print("1SE idx:", ose_idx, "1SE Score:", grid_search.scores[ose_idx], "1SE Lambda:", grid_search.lambdas[ose_idx])
 
     fig = plt.figure(figsize=(16,4))
 
@@ -66,12 +66,12 @@ def plot_model_perf(model, train, test, title="Model Predictions"):
 
     X_test, y_test = test
     X_train, y_train = train
-    labels = set(np.unique(y_train)) + set(np.unique(y_test))
+    labels = np.unique(np.concatenate([y_test, y_train]))
     y_test_trans = transform_labels(y_test, labels=labels)
     y_train_trans = transform_labels(y_train, labels=labels)
     
     weights_train = calculate_weights(y_train_trans)
-    weights_test = calculate_weights(y_train_trans)
+    weights_test = calculate_weights(y_test_trans)
 
     print("Degrees of freedom", len(np.nonzero(model.coef_)[0]))
     print("Train:")
