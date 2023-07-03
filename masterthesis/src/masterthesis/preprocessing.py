@@ -1,6 +1,6 @@
 import numpy as np
 from numpy import ndarray
-from sklearn._typing import ArrayLike, MatrixLike
+from numpy.typing import ArrayLike
 from sklearn.base import BaseEstimator, TransformerMixin
 import scanpy as sc
 import anndata as ad
@@ -36,9 +36,9 @@ def calculate_weights(y):
 class Preprocessing(BaseEstimator, TransformerMixin):
 
     def __init__(self, 
-                 log: bool = True,
-                 scale: bool = True,
-                 normalize: bool = True,
+                 log: bool = False,
+                 scale: bool = False,
+                 normalize: bool = False,
                  smooth: bool = False,
                  select_genes: str = "all",
                  gene_list: ArrayLike | None = None,
@@ -54,7 +54,7 @@ class Preprocessing(BaseEstimator, TransformerMixin):
         self.smooth = smooth
 
         select_genes_options = {"all", "hvg", "tf_mouse", "tf_human"}
-        if select_genes not in self.select_genes_options and \
+        if select_genes not in select_genes_options and \
             not isinstance(select_genes, ArrayLike):
             raise ValueError("Parameter select_genes must be one of %s or a list of gene ids." % select_genes_options)
         self.select_genes = select_genes
@@ -66,7 +66,7 @@ class Preprocessing(BaseEstimator, TransformerMixin):
         self.hvg_max_dispersion = hvg_max_dispersion
         self.hvg_n_top_genes = hvg_n_top_genes
 
-    def fit_transform(self, adata: ad.AnnData, y: MatrixLike | ArrayLike | None = None, **fit_params) -> ndarray:
+    def fit_transform(self, adata: ad.AnnData, y: ArrayLike | None = None, **fit_params) -> ndarray:
         
         # filter genes by their minimum mean counts
         cell_thresh = np.ceil(0.01 * adata.n_obs)
@@ -78,13 +78,13 @@ class Preprocessing(BaseEstimator, TransformerMixin):
         # select highly-variable genes
         if self.select_genes == "hvg":
             sc.pp.highly_variable_genes(
-                adata.X, flavor='seurat', n_top_genes=self.hvg_n_top_genes,
-                min_dispersion=self.hvg_min_dispersion, max_dispersion=self.hvg_max_dispersion
+                adata, flavor='seurat', n_top_genes=self.hvg_n_top_genes,
+                min_disp=self.hvg_min_dispersion, max_disp=self.hvg_max_dispersion, inplace=True
             )
             adata = adata[:,adata.var.highly_variable].copy()
         
         # select mouse transcription factors
-        elif self.selected_genes == "tf_mouse":
+        elif self.select_genes == "tf_mouse":
             raise NotImplemented("select_genes='tf_mouse'")
 
         # select human transcription factors
@@ -92,7 +92,8 @@ class Preprocessing(BaseEstimator, TransformerMixin):
             raise NotImplemented("select_genes='tf_human'")
 
         # select curated genes from list
-        elif isinstance(self.gene_list, ArrayLike):
+        # TODO: Check for array
+        elif self.gene_list is not None:
             raise NotImplemented("gene_list")
         
         # select all genes
