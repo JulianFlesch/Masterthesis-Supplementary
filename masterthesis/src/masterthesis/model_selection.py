@@ -113,7 +113,8 @@ class RegularizationGridSearch:
 
             # compute the threshold as the maximum score minus the standard error
             nonzero_idx = np.nonzero(self.dof)
-            thresh = np.max(self.scores) - np.std(np.array(self.scores)[nonzero_idx])
+            max_idx = np.argmax(self.scores)
+            thresh = self.scores[max_idx] - np.std(np.array(self.scores)[nonzero_idx])
 
             if sparsity_increases_w_idx:
                 items = zip(self.scores, self.dof)
@@ -122,7 +123,9 @@ class RegularizationGridSearch:
 
             for i, (s, d) in enumerate(items):
                 # exclude models with 0 degrees of freedom
-                if s > thresh and d != 0:
+                # and stop if there is no sufficiently good sparser model
+                if (s > thresh and d != 0) or \
+                   (i == max_idx):
                     return (self.lambdas[i], i)
             
             print("Warning: No model for method '1se' with non-zero degrees of freedom could be found. Returning the best scoring model")
