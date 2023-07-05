@@ -255,11 +255,56 @@ class LassoBinarizedModel(LinearBinarizedModel):
     def _get_estimator(self):
         if self.binary_estimator_ is None:
             self.binary_estimator_ =  \
-                Lasso(fit_intercept=False,
+                Lasso(fit_intercept=True,
                     tol=self.tol,
                     max_iter=self.max_iter,
                     random_state=self.random_state,
                     alpha=self.regularization
+                    )
+
+        return self.binary_estimator_
+
+
+class VanillaSGDBinarizedModel(LinearBinarizedModel):
+    # For now, while testing predictive performance, use the vanilla SGD Training.
+    # The approach below still has memory issues, when using n_batches=1 and has less 
+    # optimized training.
+
+    def __init__(self, 
+                 max_iter=1000, 
+                 random_state=1234, 
+                 regularization=0.01,
+                 n_iter_no_change=5, 
+                 early_stopping=True,
+                 tol=1e-3):
+        
+         # model hyperparameters
+        self.max_iter = max_iter
+        self.random_state = random_state
+        self.regularization = regularization
+        self.rng = default_rng(seed=self.random_state)
+
+        # early stopping parameters
+        self.early_stopping = early_stopping
+        self.n_iter_no_change = n_iter_no_change
+        self.tol = tol
+
+        # fitting/data parameters
+        self.k = None
+        self.intercept_ = []
+        self.coef_ = []
+
+    def _get_estimator(self):
+        if self.binary_estimator_ is None:
+            self.binary_estimator_ =  \
+                SGDClassifier(
+                    fit_intercept=True,
+                    max_iter=self.max_iter,
+                    random_state=self.random_state,
+                    alpha=self.regularization,
+                    early_stopping=self.early_stopping,
+                    n_iter_no_change=self.n_iter_no_change,
+                    tol=self.tol
                     )
 
         return self.binary_estimator_
