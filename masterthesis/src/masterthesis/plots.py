@@ -116,8 +116,7 @@ def plot_identified_gene_coefficients(model, anndata: ad.AnnData,  n_top=30, fig
     ax.set_xlim((-(max_val * 1.5), max_val * 1.5))
     ax.axvline(0, color="black", ls="--")
 
-    return ax
-
+    return fig
 
 
 def plot_identified_genes_over_psupertime(n = 20, *args, **kwargs):
@@ -126,6 +125,8 @@ def plot_identified_genes_over_psupertime(n = 20, *args, **kwargs):
 
 
 def plot_labels_over_psupertime(model, anndata: ad.AnnData, label_key, figsize=(10, 5), *args, **kwargs):
+
+    # TODO: make `model` predict psupertimes, if `anndata.obs` does not contain the `psupertime` key.
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111)
 
@@ -134,7 +135,8 @@ def plot_labels_over_psupertime(model, anndata: ad.AnnData, label_key, figsize=(
     sns.kdeplot(data=anndata.obs, x='psupertime', fill=label_key, hue=label_key, alpha=0.5,
                     palette=col_vals, legend=True, ax=ax)
 
-    for x, c in zip(model.intercept_ * -1, col_vals):
+    thresholds = model.intercept_ * -1  # inverted thetas
+    for x, c in zip(thresholds, col_vals):
         ax.axvline(x=x, color=c)
 
     ax.set_xlabel('psupertime')
