@@ -25,17 +25,20 @@ def transform_labels(y, labels=None):
 
 def calculate_weights(y):
     """
+    Calculates weights from the classes in y. 
+    Returns an array the same length as y, 
+    where the class is replaced with their respective weight
+
     Calculates balanced class weights according to
     `n_samples / (n_classes * np.bincount(y))`
-
-    OLD AND BROKEN:
-    Calculates the weights for each label in a target vector.
-    The weight of label is the number of occurances 
-    divided by the total number of labels.
+    as is done in sklearn.
     """
+    classes = np.unique(y)
+    weights = class_weight.compute_class_weight("balanced", classes=classes, y=y)
+    
+    transf = dict(zip(classes, weights))
 
-    weights = class_weight.compute_class_weight("balanced", classes=np.unique(y), y=y)
-    return weights
+    return np.array([transf[e] for e in y])
 
 
 class Preprocessing(BaseEstimator, TransformerMixin):
