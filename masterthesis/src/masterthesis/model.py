@@ -267,14 +267,26 @@ class LassoBinarizedModel(LinearBinarizedModel):
 
 class SGDBinarizedModel(BinaryModelMixin, BaseModel):
 
-    def __init__(self, max_iter=10, n_batches=1, random_state=1234, regularization=0.01):
-        
+    def __init__(self, 
+                 max_iter=100, 
+                 n_batches=1, 
+                 random_state=1234, 
+                 regularization=0.01, 
+                 n_iter_no_change=3, 
+                 early_stopping=True,
+                 tol=1e-3):
+
         # model hyperparameters
         self.max_iter = max_iter
         self.n_batches = n_batches
         self.random_state = random_state
         self.regularization = regularization
         self.rng = default_rng(seed=self.random_state)
+
+        # early stopping parameters
+        self.early_stopping = early_stopping
+        self.n_iter_no_change = n_iter_no_change
+        self.tol = tol
 
         # fitting/data parameters
         self.k = None
@@ -301,7 +313,6 @@ class SGDBinarizedModel(BinaryModelMixin, BaseModel):
         return self.binary_estimator_
         
     def fit(self, X, y, sample_weight=None):
-        # TODO: implement early stopping. Don't run all iterations, if the score doesn't change.
 
         X, y = self._before_fit(X, y)
         y_bin = self.restructure_y_to_bin(y)
@@ -313,7 +324,9 @@ class SGDBinarizedModel(BinaryModelMixin, BaseModel):
         n = X.shape[0]
 
         cur_iter = 0
-
+        
+        best_score = 0
+        n_no_improvement = 0
         while cur_iter < self.max_iter:
             #if (cur_iter > 0 and cur_iter % 2 == 0):
             #    print("Iter: ", cur_iter, "Train score: ", model.score(X_batch, y_batch))
@@ -332,6 +345,22 @@ class SGDBinarizedModel(BinaryModelMixin, BaseModel):
                 start = end
                 weights = np.array(sample_weight)[idx_mod_n] if sample_weight is not None else None
                 model.partial_fit(X_batch, y_batch, classes=np.unique(y_batch), sample_weight=weights)
+
+            # TODO: Check covergence
+
+            # TODO: Learning Rate adjustments?
+            
+            # TODO: Early stopping -> Requires Validation Data 
+            #if self.early_stopping:
+            #    # THIS WOULD NOT WORK VERY WELL: Needs Validation Data
+            #    cur_score = model.score(X_batch, y_batch)
+            #    if cur_score - self.tol > best_score:
+            #        best_score = cur_score
+            #        n_no_improvement = 0
+            #    else:
+            #        n_no_improvement += 1
+            #        if n_no_improvement >= self.n_iter_no_change:
+            #            break
 
         self._after_fit(model)
         return self
