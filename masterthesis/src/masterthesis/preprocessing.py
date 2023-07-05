@@ -4,6 +4,7 @@ from numpy.typing import ArrayLike
 from sklearn.base import BaseEstimator, TransformerMixin
 import scanpy as sc
 import anndata as ad
+from sklearn.utils import class_weight
 
 
 def transform_labels(y, labels=None):
@@ -24,12 +25,16 @@ def transform_labels(y, labels=None):
 
 def calculate_weights(y):
     """
+    Calculates balanced class weights according to
+    `n_samples / (n_classes * np.bincount(y))`
+
+    OLD AND BROKEN:
     Calculates the weights for each label in a target vector.
     The weight of label is the number of occurances 
     divided by the total number of labels.
     """
-    _, counts = np.unique(y, return_counts=True)
-    weights = [counts[el] / len(y) for el in y]
+
+    weights = class_weight.compute_class_weight("balanced", classes=np.unique(y), y=y)
     return weights
 
 
