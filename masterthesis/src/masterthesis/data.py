@@ -9,11 +9,9 @@ from scanpy import read_h5ad
 data_dir = os.path.join(os.path.dirname(__file__), "data")
 
 def load_h5ad(h5ad_file):
-    if os.path.exists(h5ad_file):
-        d = read_h5ad(h5ad_file)
-        return d
-    else:
-        print("Data could not be loaded. No such file:", h5ad_file)
+    d = read_h5ad(h5ad_file)
+    return d
+
 
 def load_acinar(acinar_file=None):
     if not acinar_file:
