@@ -271,14 +271,18 @@ class VanillaSGDBinarizedModel(LinearBinarizedModel):
     # optimized training.
 
     def __init__(self, 
-                 max_iter=1000, 
+                 max_iter=100, 
                  random_state=1234, 
-                 regularization=0.01,
-                 n_iter_no_change=5, 
+                 regularization=0.01, 
+                 n_iter_no_change=3, 
                  early_stopping=True,
-                 tol=1e-3):
+                 tol=1e-3,
+                 learning_rate="optimal",
+                 eta0=0):
         
-         # model hyperparameters
+        # model hyperparameters
+        self.eta0 = eta0
+        self.learning_rate = learning_rate
         self.max_iter = max_iter
         self.random_state = random_state
         self.regularization = regularization
@@ -297,14 +301,16 @@ class VanillaSGDBinarizedModel(LinearBinarizedModel):
     def _get_estimator(self):
         if self.binary_estimator_ is None:
             self.binary_estimator_ =  \
-                SGDClassifier(
-                    fit_intercept=True,
-                    max_iter=self.max_iter,
-                    random_state=self.random_state,
-                    alpha=self.regularization,
-                    early_stopping=self.early_stopping,
-                    n_iter_no_change=self.n_iter_no_change,
-                    tol=self.tol
+                SGDClassifier(loss="log_loss",
+                              fit_intercept=True,
+                              penalty="l1",
+                              n_jobs=1,
+                              random_state=self.random_state,
+                              learning_rate=self.learning_rate,
+                              early_stopping=self.early_stopping,
+                              n_iter_no_change=self.n_iter_no_change,
+                              tol=self.tol,
+                              alpha=self.regularization
                     )
 
         return self.binary_estimator_
@@ -319,9 +325,14 @@ class SGDBinarizedModel(BinaryModelMixin, BaseModel):
                  regularization=0.01, 
                  n_iter_no_change=3, 
                  early_stopping=True,
-                 tol=1e-3):
+                 tol=1e-3,
+                 learning_rate="optimal",
+                 eta0=0,
+                 ):
 
         # model hyperparameters
+        self.eta0 = eta0
+        self.learning_rate = learning_rate
         self.max_iter = max_iter
         self.n_batches = n_batches
         self.random_state = random_state
@@ -350,7 +361,11 @@ class SGDBinarizedModel(BinaryModelMixin, BaseModel):
             self.binary_estimator_ =  \
                  SGDClassifier(loss="log_loss",
                               random_state=self.random_state,
+                              learning_rate=self.learning_rate,
                               penalty="l1",
+                              early_stopping=self.early_stopping,
+                              n_iter_no_change=self.n_iter_no_change,
+                              tol=self.tol,
                               alpha=self.regularization,
                               fit_intercept=True,
                               n_jobs=1)
