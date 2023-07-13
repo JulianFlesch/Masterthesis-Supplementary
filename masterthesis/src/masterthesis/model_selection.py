@@ -85,10 +85,15 @@ class RegularizationGridSearch:
         self.is_fitted_ = True
         return self
 
-    def get_optimal_lambda(self, method="1se"):
+    def get_optimal_lambda(self, method="1se", index=None):
 
-        if not method in ["1se", "best"]:
+        if not method in ["1se", "best", "index"]:
             raise ValueError("The method parameter should be one of '1se' or 'best'")
+
+        if method =="index":
+            if index is None or (index >= len(self.scores) or index < 0): 
+                raise ValueError("Parmeter `index` must be set to a valid cv index, if method='index' is selected.")
+            return (self.lambdas[index], index)
 
         if method == "best":
             idx = np.argmax(self.scores)
@@ -99,17 +104,6 @@ class RegularizationGridSearch:
 
             # check the effect direction of the regularization parameter
             sparsity_increases_w_idx = np.mean(self.dof[:n//4]) < np.mean(self.dof[-n//4:])
-            
-            # TODO: Trim the scores where dof is zero at the sparse end?
-            #trimmed = np.array(self.scores) != 0
-            #trimmed_max = trimmed[("mean", "accuracy")].max()
-            #trimmed_std = trimmed[("mean", "accuracy")].std()
-            #thresh = trimmed_max - trimmed_std
-            #above = trimmed[trimmed[("mean", "accuracy")] > thresh]
-            #if lower_increases_reg:
-            #    idx = above.iloc[-1].name
-            #else:
-            #    idx = above.iloc[0].name
 
             # compute the threshold as the maximum score minus the standard error
             nonzero_idx = np.nonzero(self.dof)
