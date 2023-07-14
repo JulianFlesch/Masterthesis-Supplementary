@@ -125,7 +125,7 @@ class BinaryModelMixin(metaclass=ABCMeta):
         corresponds from changing from label $l_i$ to $l_{i+1}$. 
         $k$ copies of the label vector are concatenated such that for every
         vector $j$ the labels  $l_i$ with $i<j$ are converted to 0 and the 
-        labels $i\ge j$ are converted to 1.
+        labels $i < j$ are converted to 1.
         '''
 
         y_classes = np.unique(y_orig)
