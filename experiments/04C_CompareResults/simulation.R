@@ -20,28 +20,28 @@ balanced_accuracy <- function(y, predicted) {
 }
 
 
-filenames = c('/home/julian/Uni/MasterThesis/data/simdata_TS0.1_SS0.1.h5ad',
-              '/home/julian/Uni/MasterThesis/data/simdata_TS0.1_SS0.3.h5ad',
-              '/home/julian/Uni/MasterThesis/data/simdata_TS0.1_SS0.5.h5ad',
-              '/home/julian/Uni/MasterThesis/data/simdata_TS0.1_SS0.7.h5ad',
-              '/home/julian/Uni/MasterThesis/data/simdata_TS0.1_SS0.9.h5ad',
-              '/home/julian/Uni/MasterThesis/data/simdata_TS0.3_SS0.1.h5ad',
-              '/home/julian/Uni/MasterThesis/data/simdata_TS0.3_SS0.3.h5ad',
-              '/home/julian/Uni/MasterThesis/data/simdata_TS0.3_SS0.5.h5ad',
-              '/home/julian/Uni/MasterThesis/data/simdata_TS0.3_SS0.7.h5ad',
-              '/home/julian/Uni/MasterThesis/data/simdata_TS0.5_SS0.1.h5ad',
-              '/home/julian/Uni/MasterThesis/data/simdata_TS0.5_SS0.3.h5ad',
-              '/home/julian/Uni/MasterThesis/data/simdata_TS0.5_SS0.5.h5ad',
-              '/home/julian/Uni/MasterThesis/data/simdata_TS0.7_SS0.1.h5ad',
-              '/home/julian/Uni/MasterThesis/data/simdata_TS0.7_SS0.3.h5ad',
-              '/home/julian/Uni/MasterThesis/data/simdata_TS0.9_SS0.1.h5ad')
+filenames = c('/home/julian/Uni/MasterThesis/data/simdata_v2_TS0.1_SS0.1.h5ad',
+              '/home/julian/Uni/MasterThesis/data/simdata_v2_TS0.1_SS0.3.h5ad',
+              '/home/julian/Uni/MasterThesis/data/simdata_v2_TS0.1_SS0.5.h5ad',
+              '/home/julian/Uni/MasterThesis/data/simdata_v2_TS0.1_SS0.7.h5ad',
+              '/home/julian/Uni/MasterThesis/data/simdata_v2_TS0.1_SS0.9.h5ad',
+              '/home/julian/Uni/MasterThesis/data/simdata_v2_TS0.3_SS0.1.h5ad',
+              '/home/julian/Uni/MasterThesis/data/simdata_v2_TS0.3_SS0.3.h5ad',
+              '/home/julian/Uni/MasterThesis/data/simdata_v2_TS0.3_SS0.5.h5ad',
+              '/home/julian/Uni/MasterThesis/data/simdata_v2_TS0.3_SS0.7.h5ad',
+              '/home/julian/Uni/MasterThesis/data/simdata_v2_TS0.5_SS0.1.h5ad',
+              '/home/julian/Uni/MasterThesis/data/simdata_v2_TS0.5_SS0.3.h5ad',
+              '/home/julian/Uni/MasterThesis/data/simdata_v2_TS0.5_SS0.5.h5ad',
+              '/home/julian/Uni/MasterThesis/data/simdata_v2_TS0.7_SS0.1.h5ad',
+              '/home/julian/Uni/MasterThesis/data/simdata_v2_TS0.7_SS0.3.h5ad',
+              '/home/julian/Uni/MasterThesis/data/simdata_v2_TS0.9_SS0.1.h5ad')
 
 n_seeds = 5
 n_folds = 5
 n_lambdas = 20
 
-genes_outfile = "/home/julian/Uni/MasterThesis/code/experiments/04C_CompareResults/genes-R.txt"
-results_outfile = "/home/julian/Uni/MasterThesis/code/experiments/04C_CompareResults/results-R.txt"
+genes_outfile = "/home/julian/Uni/MasterThesis/code/experiments/04C_CompareResults/genes-R-2.txt"
+results_outfile = "/home/julian/Uni/MasterThesis/code/experiments/04C_CompareResults/results-R-2.txt"
 
 # collect results
 seeds <- c()

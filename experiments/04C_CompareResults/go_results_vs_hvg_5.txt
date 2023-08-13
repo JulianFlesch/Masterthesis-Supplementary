@@ -1,0 +1,53 @@
+
+
+
+
+
+Analysis Type:	PANTHER Overrepresentation Test (Released 20230705)
+Annotation Version and Release Date:	GO Ontology database DOI:  10.5281/zenodo.7942786 Released 2023-05-10
+Analyzed List:	go-genelist-py-5.csv (Homo sapiens)go-genelist-r.csv (Homo sapiens)
+Reference List:	go-referencelist-hvg.csv (Homo sapiens)
+Test Type:	FISHER
+Correction:	NONE
+GO biological process complete	go-referencelist-hvg.csv - REFLIST (815)	go-genelist-py-5.csv (113)	go-genelist-py-5.csv (expected)	go-genelist-py-5.csv (over/under)	go-genelist-py-5.csv (fold Enrichment)	go-genelist-py-5.csv (raw P-value)	go-genelist-r.csv (142)	go-genelist-r.csv (expected)	go-genelist-r.csv (over/under)	go-genelist-r.csv (fold Enrichment)	go-genelist-r.csv (raw P-value)
+intermediate filament organization (GO:0045109)	3	3	.42	+	7.21	2.67E-02	2	.52	+	3.83	1.61E-01
+ribosome assembly (GO:0042255)	3	3	.42	+	7.21	2.67E-02	2	.52	+	3.83	1.61E-01
+pyridine-containing compound biosynthetic process (GO:0072525)	3	3	.42	+	7.21	2.67E-02	2	.52	+	3.83	1.61E-01
+amine catabolic process (GO:0009310)	4	3	.55	+	5.41	4.26E-02	3	.70	+	4.30	7.11E-02
+DNA damage checkpoint signaling (GO:0000077)	4	3	.55	+	5.41	4.26E-02	0	.70	-	 < 0.01	1.00E00
+positive regulation of organic acid transport (GO:0032892)	4	3	.55	+	5.41	4.26E-02	1	.70	+	1.43	5.53E-01
+intermediate filament cytoskeleton organization (GO:0045104)	4	3	.55	+	5.41	4.26E-02	2	.70	+	2.87	2.19E-01
+intermediate filament-based process (GO:0045103)	4	3	.55	+	5.41	4.26E-02	2	.70	+	2.87	2.19E-01
+cellular biogenic amine catabolic process (GO:0042402)	4	3	.55	+	5.41	4.26E-02	3	.70	+	4.30	7.11E-02
+negative regulation of innate immune response (GO:0045824)	4	3	.55	+	5.41	4.26E-02	2	.70	+	2.87	2.19E-01
+DNA integrity checkpoint signaling (GO:0031570)	4	3	.55	+	5.41	4.26E-02	0	.70	-	 < 0.01	1.00E00
+nerve development (GO:0021675)	4	3	.55	+	5.41	4.26E-02	1	.70	+	1.43	5.53E-01
+biogenic amine metabolic process (GO:0006576)	6	4	.83	+	4.81	2.44E-02	3	1.05	+	2.87	1.37E-01
+immune system development (GO:0002520)	8	5	1.11	+	4.51	1.41E-02	2	1.39	+	1.43	6.49E-01
+sensory perception of sound (GO:0007605)	7	4	.97	+	4.12	3.49E-02	1	1.22	-	.82	1.00E00
+amine metabolic process (GO:0009308)	9	5	1.25	+	4.01	1.99E-02	4	1.57	+	2.55	1.13E-01
+cell activation involved in immune response (GO:0002263)	8	4	1.11	+	3.61	4.75E-02	4	1.39	+	2.87	8.80E-02
+DNA replication (GO:0006260)	8	4	1.11	+	3.61	4.75E-02	1	1.39	-	.72	1.00E00
+retinoid metabolic process (GO:0001523)	11	5	1.53	+	3.28	3.55E-02	3	1.92	+	1.57	4.49E-01
+homeostasis of number of cells (GO:0048872)	12	5	1.66	+	3.01	4.55E-02	4	2.09	+	1.91	2.78E-01
+non-membrane-bounded organelle assembly (GO:0140694)	16	6	2.22	+	2.70	4.13E-02	4	2.79	+	1.43	5.22E-01
+isoprenoid metabolic process (GO:0006720)	20	7	2.77	+	2.52	3.66E-02	5	3.48	+	1.43	4.02E-01
+supramolecular fiber organization (GO:0097435)	20	7	2.77	+	2.52	3.66E-02	6	3.48	+	1.72	2.58E-01
+chronic inflammatory response (GO:0002544)	3	1	.42	+	2.40	4.06E-01	3	.52	+	5.74	4.55E-02
+cell migration (GO:0016477)	44	13	6.10	+	2.13	1.93E-02	11	7.67	+	1.43	2.47E-01
+immune response (GO:0006955)	88	23	12.20	+	1.89	5.27E-03	16	15.33	+	1.04	8.84E-01
+defense response to other organism (GO:0098542)	73	19	10.12	+	1.88	1.72E-02	12	12.72	-	.94	1.00E00
+cell motility (GO:0048870)	50	13	6.93	+	1.88	4.42E-02	12	8.71	+	1.38	3.53E-01
+regulation of binding (GO:0051098)	21	5	2.91	+	1.72	2.33E-01	9	3.66	+	2.46	3.15E-02
+immune system process (GO:0002376)	127	28	17.61	+	1.59	2.13E-02	21	22.13	-	.95	9.00E-01
+response to external biotic stimulus (GO:0043207)	106	23	14.70	+	1.56	4.17E-02	17	18.47	-	.92	8.92E-01
+response to other organism (GO:0051707)	106	23	14.70	+	1.56	4.17E-02	17	18.47	-	.92	8.92E-01
+regulation of protein binding (GO:0043393)	14	3	1.94	+	1.55	4.51E-01	7	2.44	+	2.87	2.58E-02
+amino acid biosynthetic process (GO:0008652)	10	2	1.39	+	1.44	6.48E-01	6	1.74	+	3.44	2.14E-02
+rhythmic process (GO:0048511)	15	3	2.08	+	1.44	4.73E-01	7	2.61	+	2.68	3.32E-02
+multicellular organismal process (GO:0032501)	301	57	41.73	+	1.37	7.17E-03	56	52.44	+	1.07	5.74E-01
+biosynthetic process (GO:0009058)	160	28	22.18	+	1.26	2.12E-01	39	27.88	+	1.40	4.31E-02
+regulation of cell development (GO:0060284)	39	6	5.41	+	1.11	8.14E-01	13	6.80	+	1.91	4.36E-02
+regulation of epithelial cell proliferation (GO:0050678)	20	3	2.77	+	1.08	7.53E-01	9	3.48	+	2.58	2.80E-02
+transport (GO:0006810)	215	25	29.81	-	.84	3.61E-01	26	37.46	-	.69	4.62E-02
+positive regulation of protein kinase B signaling (GO:0051897)	5	0	.69	-	 < 0.01	1.00E00	4	.87	+	4.59	3.20E-02

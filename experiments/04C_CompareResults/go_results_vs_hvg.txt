@@ -1,0 +1,25 @@
+
+
+
+
+
+Analysis Type:	PANTHER Overrepresentation Test (Released 20230705)
+Annotation Version and Release Date:	GO Ontology database DOI:  10.5281/zenodo.7942786 Released 2023-05-10
+Analyzed List:	go-genelist-py.csv (Homo sapiens)go-genelist-r.csv (Homo sapiens)
+Reference List:	go-referencelist-hvg.csv (Homo sapiens)
+Test Type:	FISHER
+Correction:	NONE
+GO biological process complete	go-referencelist-hvg.csv - REFLIST (815)	go-genelist-py.csv (226)	go-genelist-py.csv (expected)	go-genelist-py.csv (over/under)	go-genelist-py.csv (fold Enrichment)	go-genelist-py.csv (raw P-value)	go-genelist-r.csv (142)	go-genelist-r.csv (expected)	go-genelist-r.csv (over/under)	go-genelist-r.csv (fold Enrichment)	go-genelist-r.csv (raw P-value)
+lymphocyte activation involved in immune response (GO:0002285)	5	5	1.39	+	3.61	4.46E-02	3	.87	+	3.44	1.02E-01
+regulation of mitotic cell cycle (GO:0007346)	24	14	6.66	+	2.10	2.73E-02	4	4.18	-	.96	1.00E00
+positive regulation of protein kinase B signaling (GO:0051897)	5	2	1.39	+	1.44	6.49E-01	4	.87	+	4.59	3.20E-02
+amino acid biosynthetic process (GO:0008652)	10	4	2.77	+	1.44	5.18E-01	6	1.74	+	3.44	2.14E-02
+chronic inflammatory response (GO:0002544)	3	1	.83	+	1.20	1.00E00	3	.52	+	5.74	4.55E-02
+regulation of cell development (GO:0060284)	39	13	10.81	+	1.20	6.04E-01	13	6.80	+	1.91	4.36E-02
+rhythmic process (GO:0048511)	15	5	4.16	+	1.20	7.84E-01	7	2.61	+	2.68	3.32E-02
+regulation of binding (GO:0051098)	21	6	5.82	+	1.03	1.00E00	9	3.66	+	2.46	3.15E-02
+regulation of protein binding (GO:0043393)	14	4	3.88	+	1.03	1.00E00	7	2.44	+	2.87	2.58E-02
+transport (GO:0006810)	215	60	59.62	+	1.01	1.00E00	26	37.46	-	.69	4.62E-02
+biosynthetic process (GO:0009058)	160	38	44.37	-	.86	3.89E-01	39	27.88	+	1.40	4.31E-02
+homeostatic process (GO:0042592)	89	14	24.68	-	.57	4.31E-02	17	15.51	+	1.10	6.66E-01
+regulation of epithelial cell proliferation (GO:0050678)	20	1	5.55	-	.18	6.16E-02	9	3.48	+	2.58	2.80E-02

@@ -1,0 +1,125 @@
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    76    519.6 MiB    519.6 MiB           1       @profile
+    77                                             def fit(self, X, y, fit_params=dict(), estimator_params=dict()):
+    78                                                
+    79                                                 # copy the params, in order to not mutate the original object
+    80    519.6 MiB      0.0 MiB           1           estimator_params = copy(estimator_params)
+    81                                         
+    82    519.6 MiB      0.0 MiB           1           if not isinstance(estimator_params, dict):
+    83                                                     raise ValueError("estimator_params must be of type dict")
+    84                                         
+    85    519.6 MiB      0.0 MiB           1           if not isinstance(fit_params, dict):
+    86                                                     raise ValueError("fit_params must be of type dict")
+    87                                         
+    88    658.3 MiB      0.0 MiB          41           for i, reg in enumerate(self.reg_path):
+    89                                                     
+    90    658.3 MiB      0.0 MiB          40               if self.verbosity >= 1:
+    91    658.3 MiB      0.0 MiB          40                   print("Regularization: %s/%s" % (i+1, len(self.reg_path)), sep="", end="\r")
+    92                                         
+    93    658.3 MiB      0.0 MiB          40               estimator_params[self.reg_param_name] = reg
+    94    658.3 MiB    138.6 MiB          80               cv = cross_validate(estimator=self.estimator(**estimator_params),
+    95    658.3 MiB      0.0 MiB          40                                   scoring=self.scoring,
+    96    658.3 MiB      0.0 MiB          40                                   n_jobs=self.n_jobs,
+    97    658.3 MiB      0.0 MiB          40                                   cv=self.n_folds,
+    98    658.3 MiB      0.0 MiB          40                                   X=X,
+    99    658.3 MiB      0.0 MiB          40                                   y=y,
+   100    658.3 MiB      0.0 MiB          40                                   error_score="raise",
+   101    658.3 MiB      0.0 MiB          40                                   return_train_score=True,
+   102    658.3 MiB      0.0 MiB          40                                   return_estimator=True,
+   103    658.3 MiB      0.0 MiB          40                                   fit_params=fit_params
+   104                                                                         )
+   105                                         
+   106    658.3 MiB      0.0 MiB          40               best_idx = np.argmax(cv["test_score"])
+   107    658.3 MiB      0.0 MiB          40               self.train_scores.append(np.mean(cv["train_score"]))
+   108    658.3 MiB      0.0 MiB          40               self.train_scores_std.append(np.std(cv["train_score"]))
+   109    658.3 MiB      0.0 MiB          40               self.scores.append(np.mean(cv["test_score"]))
+   110    658.3 MiB      0.0 MiB          40               self.scores_std.append(np.std(cv["test_score"]))
+   111    658.3 MiB      0.0 MiB          40               self.fitted_estimators.append(cv["estimator"][best_idx])
+   112                                         
+   113                                                     # TODO: Disregard the threshold weights when running grid search on a binary model
+   114    658.3 MiB      0.0 MiB          40               weights = np.array(cv["estimator"][best_idx].coef_).flatten()
+   115    658.3 MiB      0.0 MiB          40               self.dof.append(np.count_nonzero(weights))
+   116                                         
+   117    658.3 MiB      0.0 MiB           1           if self.verbosity >= 1:
+   118    658.3 MiB      0.0 MiB           1               print("Regularization: done   ")
+   119                                         
+   120    658.3 MiB      0.0 MiB           1           self.is_fitted_ = True
+   121    658.3 MiB      0.0 MiB           1           return self
+
+
+Refit on all data: done. accuracy=0.131387.02, n_genes=0
+Total elapsed time:  0:11:30.137507
+Filename: /home/julian/.local/share/virtualenvs/code-tW9RC7Ez/lib/python3.11/site-packages/pypsupertime/psupertime.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    62    288.6 MiB    288.6 MiB           1       @profile
+    63                                             def run(self, adata: Union[ad.AnnData, str], ordinal_data: Union[Iterable, str]):
+    64                                                 
+    65    288.6 MiB      0.0 MiB           1           start_time = datetime.datetime.now()
+    66                                         
+    67                                                 # TODO: respect verbosity setting everywhere
+    68                                         
+    69                                                 # Validate adata or load the filename
+    70    288.6 MiB      0.0 MiB           1           if isinstance(adata, str):
+    71    288.6 MiB      0.0 MiB           1               filename = adata
+    72    486.0 MiB    197.4 MiB           1               adata = read_h5ad(filename)
+    73                                                 
+    74                                                 elif not isinstance(adata, ad.AnnData):
+    75                                                     raise ValueError("Parameter adata must be a filename or anndata.AnnData object. Received: ", adata)
+    76                                         
+    77                                                 # Validate the ordinal data
+    78    486.0 MiB      0.0 MiB           1           if isinstance(ordinal_data, str):
+    79    486.0 MiB      0.0 MiB           1               column_name = ordinal_data
+    80    486.1 MiB      0.1 MiB           1               if column_name not in adata.obs.columns:
+    81                                                         raise ValueError("Parameter ordinal_data is not a valid column in adata.obs. Received: ", ordinal_data)
+    82                                         
+    83    486.1 MiB      0.0 MiB           1               ordinal_data = adata.obs.get(column_name)
+    84                                                 
+    85                                                 elif isinstance(ordinal_data, Iterable):
+    86                                                     if len(ordinal_data) != adata.n_obs:
+    87                                                         raise ValueError("Parameter ordinal_data has invalid length. Expected: %s Received: %s" % (len(ordinal_data), len(adata.n_obs)))
+    88                                         
+    89    486.1 MiB      0.0 MiB           1           adata.obs["ordinal_label"] = transform_labels(ordinal_data)
+    90                                         
+    91    486.1 MiB      0.0 MiB           1           if self.max_memory is not None:
+    92                                                     # TODO: Validate number 
+    93                                                     #   -> is it int?
+    94                                                     #   -> Is it bigger than the object size?
+    95                                                     
+    96                                                     # TODO: Determine number of batches needed to keep memory usage below max_memory
+    97                                                     bytes_per_gb = 1000000000
+    98                                                     gb_size = sys.getsizeof(adata) / bytes_per_gb
+    99                                         
+   100                                                     raise NotImplementedError("Max Memory cannot be set currently")
+   101                                         
+   102                                                 # Run Preprocessing
+   103    486.1 MiB      0.0 MiB           1           print("Preprocessing", end="\r")
+   104    519.6 MiB     33.5 MiB           1           adata = self.preprocessing.fit_transform(adata)
+   105    519.6 MiB      0.0 MiB           1           print("Preprocessing: done. n_genes=%s, n_cells=%s" % (adata.n_vars, adata.n_obs))
+   106                                         
+   107                                                 # TODO: Test / Train split required? -> produce two index arrays, to avoid copying the data?
+   108                                         
+   109                                                 # Run Grid Search
+   110    519.6 MiB      0.0 MiB           1           print("Grid Search CV: CPUs=%s, n_folds=%s" % (self.grid_search.n_jobs, self.grid_search.n_folds))
+   111    658.3 MiB    138.6 MiB           1           self.grid_search.fit(adata.X, adata.obs.ordinal_label, estimator_params=self.estimator_params)
+   112                                         
+   113                                                 # Refit Model on _all_ data
+   114    658.3 MiB      0.0 MiB           1           print("Refit on all data", end="\r")
+   115    658.3 MiB      0.0 MiB           1           self.model = self.grid_search.get_optimal_model("1se")
+   116    658.3 MiB      0.0 MiB           1           self.model.fit(adata.X, adata.obs.ordinal_label)
+   117    658.3 MiB      0.0 MiB           1           acc = metrics.accuracy_score(self.model.predict(adata.X), adata.obs.ordinal_label)
+   118    658.3 MiB      0.0 MiB           1           dof = np.count_nonzero(self.model.coef_)
+   119    658.3 MiB      0.0 MiB           1           print("Refit on all data: done. accuracy=%f.02, n_genes=%s" % (acc, dof))
+   120                                         
+   121                                                 # Annotate the data
+   122    658.3 MiB      0.0 MiB           1           self.model.predict_psuper(adata, inplace=True)
+   123                                         
+   124                                                 # TODO: Produce plots automatically?
+   125                                         
+   126    658.3 MiB      0.0 MiB           1           print("Total elapsed time: ", str(datetime.datetime.now() - start_time))
+   127                                                 
+   128                                                 # inplace
+   129                                                 # return adata
+

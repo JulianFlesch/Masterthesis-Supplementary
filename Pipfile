@@ -18,6 +18,9 @@ scanpy = "*"
 anndata = "*"
 flit-core = "*"
 build = "*"
+pympler = "*"
+seaborn = "*"
+sphinx = "*"
 
 [dev-packages]
 

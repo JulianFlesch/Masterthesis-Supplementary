@@ -12,6 +12,11 @@ def transform_labels(y, labels=None):
     Transforms a target vector, such that it contains successive labels starting at 0.
     """
 
+    # TODO: Check if y is numerical (i.e. int) -> Raise error otherwise
+    # BUG: Passing string labels that represent a numerical ordering can cause issues, 
+    # because np.unique sorts implicitly and string sorting != int sorting
+
+
     # if labels are not given, compute
     if labels is None: 
         labels = np.unique(y)
@@ -40,6 +45,31 @@ def calculate_weights(y):
 
     return np.array([transf[e] for e in y])
 
+
+def smooth(adata, k=10):
+    from scipy import stats
+
+    knn = 10
+
+    # corellate all cells
+    cor_mat = np.corrcoef(adata.X)
+
+    # calculate the ranks of cell correlations
+    order_mat = np.argsort(cor_mat, axis=1)
+    rank_mat = np.argsort(order_mat, axis=1)
+
+    # indicate the knn closest neighbours
+    idx_mat = rank_mat <= knn
+
+    # calculate the neighborhood average
+    avg_knn_mat = idx_mat / np.sum(idx_mat, axis=1, keepdims=True)
+    assert np.all(np.sum(avg_knn_mat, axis=1) == 1)
+
+    # 
+    imputed_mat = np.dot(avg_knn_mat, adata.X)
+    adata.X = imputed_mat
+
+    
 
 class Preprocessing(BaseEstimator, TransformerMixin):
 
@@ -78,7 +108,7 @@ class Preprocessing(BaseEstimator, TransformerMixin):
         
         # filter genes by their minimum mean counts
         cell_thresh = np.ceil(0.01 * adata.n_obs)
-        sc.pp.filter_genes(adata, min_counts=cell_thresh)
+        sc.pp.filter_genes(adata, min_cells=cell_thresh)
 
         # log transform: adata.X = log(adata.X + 1)
         if self.log: sc.pp.log1p(adata, copy=False)

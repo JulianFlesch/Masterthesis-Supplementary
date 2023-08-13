@@ -1,0 +1,34 @@
+
+
+
+
+
+Analysis Type:	PANTHER Overrepresentation Test (Released 20230705)
+Annotation Version and Release Date:	GO Ontology database DOI:  10.5281/zenodo.7942786 Released 2023-05-10
+Analyzed List:	go-genelist-py.csv (Homo sapiens)go-genelist-r.csv (Homo sapiens)
+Reference List:	go-referencelist-hvg.csv (Homo sapiens)
+Test Type:	FISHER
+Correction:	NONE
+GO biological process complete	go-referencelist-hvg.csv - REFLIST (815)	go-genelist-py.csv (163)	go-genelist-py.csv (expected)	go-genelist-py.csv (over/under)	go-genelist-py.csv (fold Enrichment)	go-genelist-py.csv (raw P-value)	go-genelist-r.csv (142)	go-genelist-r.csv (expected)	go-genelist-r.csv (over/under)	go-genelist-r.csv (fold Enrichment)	go-genelist-r.csv (raw P-value)
+positive regulation of cytosolic calcium ion concentration (GO:0007204)	6	5	1.20	+	4.17	2.38E-02	1	1.05	-	.96	1.00E00
+amino acid catabolic process (GO:0009063)	5	4	1.00	+	4.00	4.72E-02	2	.87	+	2.30	2.79E-01
+cellular ketone metabolic process (GO:0042180)	5	4	1.00	+	4.00	4.72E-02	1	.87	+	1.15	1.00E00
+alpha-amino acid catabolic process (GO:1901606)	5	4	1.00	+	4.00	4.72E-02	2	.87	+	2.30	2.79E-01
+dicarboxylic acid metabolic process (GO:0043648)	5	4	1.00	+	4.00	4.72E-02	2	.87	+	2.30	2.79E-01
+protein deubiquitination (GO:0016579)	7	5	1.40	+	3.57	3.54E-02	2	1.22	+	1.64	6.29E-01
+body fluid secretion (GO:0007589)	7	5	1.40	+	3.57	3.54E-02	2	1.22	+	1.64	6.29E-01
+heart process (GO:0003015)	7	5	1.40	+	3.57	3.54E-02	2	1.22	+	1.64	6.29E-01
+regulation of viral genome replication (GO:0045069)	9	6	1.80	+	3.33	2.64E-02	0	1.57	-	 < 0.01	3.71E-01
+negative regulation of viral genome replication (GO:0045071)	8	5	1.60	+	3.12	5.00E-02	0	1.39	-	 < 0.01	6.13E-01
+protein modification by small protein removal (GO:0070646)	8	5	1.60	+	3.12	5.00E-02	2	1.39	+	1.43	6.49E-01
+regulation of response to cytokine stimulus (GO:0060759)	11	6	2.20	+	2.73	4.88E-02	2	1.92	+	1.04	1.00E00
+positive regulation of protein kinase B signaling (GO:0051897)	5	2	1.00	+	2.00	3.30E-01	4	.87	+	4.59	3.20E-02
+chronic inflammatory response (GO:0002544)	3	1	.60	+	1.67	5.18E-01	3	.52	+	5.74	4.55E-02
+amino acid biosynthetic process (GO:0008652)	10	3	2.00	+	1.50	4.64E-01	6	1.74	+	3.44	2.14E-02
+regulation of protein binding (GO:0043393)	14	4	2.80	+	1.43	5.22E-01	7	2.44	+	2.87	2.58E-02
+regulation of cell development (GO:0060284)	39	11	7.80	+	1.41	3.28E-01	13	6.80	+	1.91	4.36E-02
+regulation of binding (GO:0051098)	21	5	4.20	+	1.19	7.88E-01	9	3.66	+	2.46	3.15E-02
+transport (GO:0006810)	215	47	43.00	+	1.09	5.61E-01	26	37.46	-	.69	4.62E-02
+biosynthetic process (GO:0009058)	160	32	32.00		1.00	1.00E00	39	27.88	+	1.40	4.31E-02
+rhythmic process (GO:0048511)	15	3	3.00		1.00	1.00E00	7	2.61	+	2.68	3.32E-02
+regulation of epithelial cell proliferation (GO:0050678)	20	3	4.00	-	.75	7.84E-01	9	3.48	+	2.58	2.80E-02

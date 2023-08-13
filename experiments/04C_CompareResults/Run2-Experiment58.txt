@@ -1,0 +1,15 @@
+Sim='simdata_TS0.5_SS0.5.h5ad' Idx=57 TS=0.5 SS=0.5
+
+PY:
+dof                     3
+train_bal_acc    0.234775
+test_bal_acc     0.285714
+spearman_corr    0.821474
+Name: 57, dtype: object
+
+R:
+dof                   61
+bacc            0.258767
+cor_spearman    0.660782
+Name: 57, dtype: object
+

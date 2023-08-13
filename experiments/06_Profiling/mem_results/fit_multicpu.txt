@@ -1,0 +1,109 @@
+Regularization: done   
+Filename: /home/julian/.local/share/virtualenvs/code-tW9RC7Ez/lib/python3.11/site-packages/pypsupertime/model.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   285    435.3 MiB    435.3 MiB           1       @profile
+   286                                             def fit(self, X, y, sample_weight=None):
+   287                                         
+   288    435.3 MiB      0.0 MiB           1           rng = np.random.default_rng(self.random_state)
+   289    435.3 MiB      0.0 MiB           1           X, y = self._before_fit(X, y)
+   290                                         
+   291    435.3 MiB      0.0 MiB           1           if self.early_stopping:
+   292                                                     # TODO: This is a full copy of the input data -> split an index array instead and work with slices?
+   293    477.9 MiB     42.6 MiB           1               X, X_test, y, y_test = train_test_split(X, y, test_size=self.validation_fraction, stratify=y, random_state=rng.integers(9999))
+   294                                                     
+   295                                                     # TODO: initializing binarized matrices for testing can be significant memory sink!
+   296    477.9 MiB      0.0 MiB           1               y_test_bin = restructure_y_to_bin(y_test)
+   297    477.9 MiB      0.0 MiB           1               del(y_test)
+   298                                         
+   299    477.9 MiB      0.0 MiB           1               if self.early_stopping_batches:
+   300    477.9 MiB      0.0 MiB           1                   n_test = X_test.shape[0]
+   301    477.9 MiB      0.0 MiB           1                   test_indices = np.arange(len(y_test_bin))
+   302                                                     else:
+   303                                                         X_test_bin = restructure_X_to_bin(X_test, self.k_)
+   304                                                         del(X_test)
+   305                                                 
+   306                                                 # diagonal matrix, to construct the binarized X per batch
+   307    477.9 MiB      0.0 MiB           1           thresholds = np.identity(self.k_)
+   308    477.9 MiB      0.0 MiB           1           if sparse.issparse(X):
+   309                                                     thresholds = sparse.crs_matrix(thresholds)
+   310                                         
+   311    477.9 MiB      0.0 MiB           1           model = self.get_binary_estimator()
+   312    477.9 MiB      0.0 MiB           1           n = X.shape[0]
+   313                                         
+   314                                                 # binarize only the labels already
+   315    477.9 MiB      0.0 MiB           1           y_bin = restructure_y_to_bin(y)
+   316                                                 
+   317                                                 # create an inex array and shuffle
+   318    477.9 MiB      0.0 MiB           1           sampled_indices = rng.integers(len(y_bin), size=len(y_bin))
+   319                                         
+   320                                                 # iterations over all data
+   321    477.9 MiB      0.0 MiB           1           epoch = 0
+   322                                         
+   323                                                 # tracking previous scores for early stopping
+   324    477.9 MiB      0.0 MiB           1           best_score = - np.inf
+   325    477.9 MiB      0.0 MiB           1           n_no_improvement = 0
+   326                                         
+   327    605.4 MiB      0.0 MiB           6           while epoch < self.max_iter:
+   328                                         
+   329    605.4 MiB      0.0 MiB           6               epoch += 1
+   330                                         
+   331    605.4 MiB      0.0 MiB           6               start = 0
+   332    605.5 MiB  -1340.5 MiB          66               for i in range(1, self.n_batches+1):
+   333    605.5 MiB  -1340.4 MiB          60                   end = (i * len(y_bin) // self.n_batches)
+   334    605.5 MiB  -1340.4 MiB          60                   batch_idx = sampled_indices[start:end]
+   335    605.5 MiB  -1340.4 MiB          60                   batch_idx_mod_n = batch_idx % n
+   336                                                         
+   337    605.5 MiB  -1340.4 MiB          60                   if sparse.issparse(X):
+   338                                                             X_batch = sparse.hstack((X[batch_idx_mod_n], thresholds[batch_idx // n]))
+   339                                                         else:
+   340    605.5 MiB  -1221.3 MiB          60                       X_batch = np.hstack((X[batch_idx_mod_n,:], thresholds[batch_idx // n]))
+   341                                                         
+   342    605.5 MiB  -1340.5 MiB          60                   y_batch = y_bin[batch_idx]
+   343    605.5 MiB  -1340.5 MiB          60                   start = end
+   344    605.5 MiB  -1340.5 MiB          60                   weights = np.array(sample_weight)[batch_idx_mod_n] if sample_weight is not None else None
+   345    605.5 MiB  -1340.4 MiB          60                   model.partial_fit(X_batch, y_batch, classes=np.unique(y_batch), sample_weight=weights)
+   346                                         
+   347                                                     # Early stopping using the test data 
+   348    605.4 MiB     -0.6 MiB           6               if self.early_stopping:
+   349                                         
+   350                                                         # build test data in batches as needed to avoid keeping in memory
+   351    605.4 MiB      0.0 MiB           6                   if self.early_stopping_batches:
+   352    605.4 MiB      0.0 MiB           6                       scores = []
+   353    605.4 MiB      0.0 MiB           6                       start = 0
+   354    605.4 MiB      0.0 MiB          66                       for i in range(1, self.n_batches+1):
+   355    605.4 MiB      0.0 MiB          60                           end = (i * len(y_test_bin) // self.n_batches)
+   356    605.4 MiB      0.0 MiB          60                           batch_idx = test_indices[start:end]
+   357    605.4 MiB      0.0 MiB          60                           batch_idx_mod_n = batch_idx % n_test
+   358    605.4 MiB      0.0 MiB          60                           if sparse.issparse(X_test):
+   359                                                                     X_test_batch = sparse.hstack((X_test[batch_idx_mod_n], thresholds[batch_idx // n_test]))
+   360                                                                 else:
+   361    605.4 MiB      0.0 MiB          60                               X_test_batch = np.hstack((X_test[batch_idx_mod_n], thresholds[batch_idx // n_test]))
+   362                                                                 
+   363    605.4 MiB      8.4 MiB          60                           scores.append(model.score(X_test_batch, y_test_bin[batch_idx]))
+   364    605.4 MiB      0.0 MiB          60                           start = end          
+   365                                                                 
+   366    605.4 MiB      0.0 MiB           6                       cur_score = np.mean(scores)
+   367                                                         
+   368                                                         else:
+   369                                                             cur_score = model.score(X_test_bin, y_test_bin)
+   370                                         
+   371    605.4 MiB      0.0 MiB           6                   if cur_score - self.tol > best_score:
+   372    593.3 MiB      0.0 MiB           1                       best_score = cur_score
+   373    593.3 MiB      0.0 MiB           1                       n_no_improvement = 0
+   374                                                         else:
+   375    605.4 MiB      0.0 MiB           5                       n_no_improvement += 1
+   376    605.4 MiB      0.0 MiB           5                       if n_no_improvement >= self.n_iter_no_change:
+   377    605.4 MiB      0.0 MiB           1                           if self.verbosity >= 2:
+   378                                                                     print("Stopped early at epoch ", epoch, " Current score:", cur_score)
+   379    605.4 MiB      0.0 MiB           1                           break
+   380                                         
+   381    605.4 MiB      0.0 MiB           5               if self.shuffle:
+   382    605.4 MiB      0.0 MiB           5                   sampled_indices = rng.integers(len(y_bin), size=len(y_bin))
+   383                                         
+   384                                                     # TODO: Learning Rate adjustments?
+   385                                         
+   386    605.4 MiB      0.0 MiB           1           self._after_fit(model)
+   387    605.4 MiB      0.0 MiB           1           return self
+
