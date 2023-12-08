@@ -1,0 +1,4 @@
+*.sqlite filter=lfs diff=lfs merge=lfs -text
+experiments/06_Profiling/procpath/memtest_py_nbatches10.sqlite filter=lfs diff=lfs merge=lfs -text
+experiments/06_Profiling/mem_results/rpsupertime.sqlite filter=lfs diff=lfs merge=lfs -text
+experiments/06_Profiling/mem_results/pypsupertime.sqlite filter=lfs diff=lfs merge=lfs -text

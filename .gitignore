@@ -1,6 +1,12 @@
 Pipfile.lock
 experiments/*/.ipynb_checkpoints/
 
+*.sqlite
+experiments/06_Profiling/procpath/*.sqlite
+experiments/06_Profiling/procpath/memtest_py_nbatches10.sqlite
+experiments/06_Profiling/mem_results/pypsupertime.sqlite
+experiments/06_Profiling/mem_results/rpsupertime.sqlite
+
 masterthesis/dist/*
 masterthesis/src/masterthesis/data/*
 
